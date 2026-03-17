@@ -14,6 +14,7 @@ namespace ScriptableObjectArchitecture.Editor
         }
 
         private ReorderableList _reorderableList;
+        private StackTrace _stackTrace;
 
         // UI
         private const bool DISABLE_ELEMENTS = false;
@@ -30,6 +31,8 @@ namespace ScriptableObjectArchitecture.Editor
 
         // Property Names
         private const string LIST_PROPERTY_NAME = "_list";
+        private const string ON_ITEM_ADDED_PROPERTY_NAME = "_onItemAddedEvent";
+        private const string ON_ITEM_REMOVED_PROPERTY_NAME = "_onItemRemovedEvent";
 
         private void OnEnable()
         {
@@ -48,9 +51,21 @@ namespace ScriptableObjectArchitecture.Editor
                 drawElementCallback = DrawElement,
                 elementHeightCallback = GetHeight,
             };
+
+            if (target is IStackTraceObject stackTraceTarget)
+            {
+                _stackTrace = new StackTrace(stackTraceTarget, startCollapsed: true);
+                _stackTrace.OnRepaint.AddListener(Repaint);
+            }
         }
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
+
+            DrawEventFields();
+
+            EditorGUILayout.Space();
+
             EditorGUI.BeginChangeCheck();
 
             _reorderableList.DoLayoutList();
@@ -58,6 +73,34 @@ namespace ScriptableObjectArchitecture.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
+            }
+
+            if (_stackTrace != null)
+            {
+                if (!SOArchitecturePreferences.IsDebugEnabled)
+                    EditorGUILayout.HelpBox("Debug mode disabled\nStack traces will not be filed on collection changes!", MessageType.Warning);
+
+                _stackTrace.Draw();
+            }
+        }
+        private void DrawEventFields()
+        {
+            SerializedProperty addedProp = serializedObject.FindProperty(ON_ITEM_ADDED_PROPERTY_NAME);
+            SerializedProperty removedProp = serializedObject.FindProperty(ON_ITEM_REMOVED_PROPERTY_NAME);
+
+            if (addedProp != null && removedProp != null)
+            {
+                EditorGUILayout.LabelField("Events", EditorStyles.boldLabel);
+
+                EditorGUI.BeginChangeCheck();
+
+                EditorGUILayout.PropertyField(addedProp, new GUIContent("On Item Added"));
+                EditorGUILayout.PropertyField(removedProp, new GUIContent("On Item Removed"));
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serializedObject.ApplyModifiedProperties();
+                }
             }
         }
         private void DrawHeader(Rect rect)

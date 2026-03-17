@@ -14,11 +14,11 @@ namespace ScriptableObjectArchitecture.Editor
          * [5] Unity Event
          * [6] Variable
          *
-         * /  1  2  3  4  5  6  7
+         * /  1  2  3  4  5  6
          * 1     X        X
          * 2        X
          * 3                 X
-         * 4
+         * 4     X
          * 5
          * 6
          */
@@ -28,7 +28,7 @@ namespace ScriptableObjectArchitecture.Editor
             { false, true, false, false, true, false, },
             { false, false, true, false, false, false, },
             { false, false, false, false, false, true, },
-            { false, false, false, false, false, false, },
+            { false, true, false, false, false, false, },
             { false, false, false, false, false, false, },
             { false, false, false, false, false, false, },
         };
